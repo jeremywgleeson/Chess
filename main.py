@@ -77,6 +77,7 @@ class Piece:
     color = False
     square = ()
     possible_moves = []
+    #funky stuff happening here check back when ur good to fix it
     def get_possible_moves(self, white_possible_moves, black_possible_moves):
         self.possible_moves = []
         # CHECK FOR ROOK
@@ -283,6 +284,7 @@ def take_turn(currcolor):
                                 #SHADE AREA ORANGEof column_number,item_number
                                 reset_board(squarelist)
                                 rect_list_possible_moves = generate_rectlist(squarelist[column_number][item_number].possible_moves)
+                                print(rect_list_possible_moves)
                                 for move in  squarelist[column_number][item_number].possible_moves:
                                     #SHADE AREA BLUEof move[0],move[1]
                                     reset_board(squarelist)
