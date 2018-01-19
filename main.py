@@ -1,44 +1,12 @@
-import sys, pygame
+import sys, pygame, time
 
-
-
-# commented because I decided to use pygame instead of turtle because of drawing speed and image complexity
-'''
-import turtle
-def drawsquare( x,y,color):
-    turtle.penup()
-    turtle.setpos(x,y)
-    turtle.pendown()
-
-    if color == True:
-        turtle.begin_fill()
-
-    for i in range(0, 4):
-        turtle.forward(4450)
-        turtle.right(90)
-    if color == True:
-        turtle.end_fill()
-
-def drawpiece(x,y,color):
-    print("bleh")
-
-def drawboard(piecelist):
-    turtle.color('black','black')
-    turtle.speed(0)
-    for row in range(0,8):
-        for column in range(0,8):
-            if (row+column)%2 == 0 or row+column == 0:
-                color = True
-            else:
-                color = False
-            currx = -4010 + 4450*row
-            curry = 405 - 4450*column
-            drawsquare(currx, curry, color)
-            drawpiece(currx+50, curry-50, color)
-'''
+def shade_area(x,y):
+    s = pygame.Surface((1000, 750), pygame.SRCALPHA)
+    s.fill((51, 153, 255, 128))
+    screen.blit(s, (x, y))
 
 #draw board and pieces in pygame window based on squarelist
-def reset_board(squarelist,clickedcoors = 0):
+def reset_board(squarelist):
     screen.blit(background, (0,0))
 
     for column in squarelist:
@@ -109,7 +77,7 @@ class Piece:
     color = False
     square = ()
     possible_moves = []
-    def get_possible_moves(self):
+    def get_possible_moves(self, white_possible_moves, black_possible_moves):
         self.possible_moves = []
         # CHECK FOR ROOK
         def check_diagonals():
@@ -230,14 +198,17 @@ class Piece:
             # check diagonal moves
             attacks = [(self.square[0]-1, self.square[1] + yiteration), (self.square[0] +1, self.square[1] + yiteration)]
             for pair in attacks:
-                if squarelist[pair[0]][pair[1]]:
-                    if self.color != squarelist[pair[0]][pair[1]].color:
-                        self.possible_moves.append((pair[0], pair[1]))
+                if pair[0] <= 7 and pair[1] <= 7 and pair[0] >= 0 and pair[1] >= 0:
+
+                    if squarelist[pair[0]][pair[1]]:
+                        if self.color != squarelist[pair[0]][pair[1]].color:
+                            self.possible_moves.append((pair[0], pair[1]))
             # check forward move
             move = (self.square[0], self.square[1] + yiteration)
             # add to list if move empty
-            if squarelist[move[0]][move[1]] == None:
-                self.possible_moves.append((move[0], move[1]))
+            if move[0] <= 7 and move[1] <= 7 and move[0] >= 0 and move[1] >= 0:
+                if squarelist[move[0]][move[1]] == None:
+                    self.possible_moves.append((move[0], move[1]))
 
         # CHECK FOR KING
         if self.type == 'king':
@@ -255,17 +226,36 @@ class Piece:
                     else:
                         self.possible_moves.append((pair[0], pair[1]))
 
-'''
-def take_turn():
+def move_piece(init, final):
+    init_x,init_y,final_x,final_y = init[0],init[1],final[0],final[1]
+    '''
+    if squarelist[final_x][final_y]:
+        #play_animation
+        
+    else:
+        #play_animation switching Piece object and None
+    '''
+    squarelist[final_x][final_y]= squarelist[init_x][init_y]
+    squarelist[init_x][init_y] = None
+    squarelist[final_x][final_y].square = final
+
+def take_turn(currcolor):
+    player_piece_coord = []
     black_possible_moves = []
     white_possible_moves = []
     for column in squarelist:
         for item in column:
             if item:
-                item.get_possible_moves()
+                if item.color == currcolor:
+                    player_piece_coord.append(item.square)
+                item.get_possible_moves(white_possible_moves, black_possible_moves)
                 if item.type == 'king':
-                    if item.possible_moves == []:
-                        # display winner text & exit program after a couple seconds/user input
+                    if item.possible_moves == [] and item.square in black_possible_moves or item.square in white_possible_moves:
+                        if item.color == True:
+                            print('White Wins!!!')
+                        else:
+                            print('Black Wins!!!')
+                        time.sleep(5)
                         raise SystemExit
                 if item.color == True:
                     for move in item.possible_moves:
@@ -275,17 +265,66 @@ def take_turn():
                     for move in item.possible_moves:
                         if move not in white_possible_moves:
                             white_possible_moves.append(move)
-    while loop?
-    check for click
-    on click send list of possible moves, then update screen w shaded colors
-    while loop?
-    on click of possible move, move piece there( animation???), delete piece, end turn, break loop
-    else on click of board:
-        break
-    else on click of other piece:
-        send list of possible moves, then update screen w shaded colors, let loop start on its own
+    rect_list = generate_rectlist(player_piece_coord)
+    # wait for input then shade and select it
+    turnover = False
+    while turnover == False:
+        broke = False
+        selectedsquare = None
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                #shouldn't collide with more than one rectangle, can break these for loops
+                for column_number in range(0,8):
+                    for item_number in range(0,8):
+                        if rect_list[column_number][item_number] != '':
+                            if rect_list[column_number][item_number].collidepoint(pos):
+                                #SHADE AREA ORANGEof column_number,item_number
+                                reset_board(squarelist)
+                                rect_list_possible_moves = generate_rectlist(squarelist[column_number][item_number].possible_moves)
+                                for move in  squarelist[column_number][item_number].possible_moves:
+                                    #SHADE AREA BLUEof move[0],move[1]
+                                    reset_board(squarelist)
+                                selectedsquare = (column_number, item_number)
+                                broke = True
+                                break
+                        if broke == True:
+                            break
 
-'''
+                    # wait for input on which possible move to make
+                    deselected = False
+                    while deselected == False and selectedsquare and turnover == False:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT: sys.exit()
+                            if event.type == pygame.MOUSEBUTTONUP:
+                                pos = pygame.mouse.get_pos()
+                                notclickedonanything = True
+                                for column_number in range(0,8):
+                                    for item_number in range(0,8):
+                                        if rect_list_possible_moves[column_number][item_number] != '':
+                                            if rect_list_possible_moves[column_number][item_number].collidepoint(pos):
+                                                notclickedonanything = False
+                                        if rect_list[column_number][item_number] != '':
+                                            if rect_list[column_number][item_number].collidepoint(pos):
+                                                notclickedonanything = False
+                                if notclickedonanything ==True:
+                                    reset_board(squarelist)
+                                    deselected = True
+                                    break
+                                # shouldn't collide with more than one rectangle, can break these for loops
+                                for column_number2 in range(0, 8):
+                                    for item_number2 in range(0, 8):
+                                        if rect_list_possible_moves[column_number2][item_number2] != '':
+                                            if rect_list_possible_moves[column_number2][item_number2].collidepoint(pos):
+                                                move_piece(selectedsquare, (column_number2,column_number))
+                                                reset_board(squarelist)
+                                                selectedsquare = None
+                                                turnover = True
+
+
+
+
 #load images
 background = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\finalchessboard.png")
 b_king = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\b_king.png")
@@ -301,6 +340,13 @@ w_bishop = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\w_bishop.png")
 w_rook = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\w_rook.png")
 w_pawn = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\w_pawn.png")
 
+# generate rectangles for each square. rectangles for squares can be reference based on rectlist[x][y]
+def generate_rectlist(coorlist):
+    rectlist = [['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','','']]
+    for pair in coorlist:
+        rectlist[pair[0]][pair[1]] = pygame.Rect(0+(62.5*pair[0]),437.5 -(62.5*pair[1]),62.5,62.5)
+    return rectlist
+
 #set up pygame window
 pygame.init()
 size = width, height = 500,500
@@ -310,7 +356,10 @@ screen = pygame.display.set_mode(size)
 squarelist = generate_squarelist()
 reset_board(squarelist)
 
-
+currcolor = False
+while True:
+    take_turn(currcolor)
+    currcolor = not currcolor
 
 # comment out for use in testing drawing function and correct board-piece placement
 '''
