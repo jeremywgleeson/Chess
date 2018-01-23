@@ -94,11 +94,12 @@ class Piece:
     color = False
     square = ()
     possible_moves = []
+    moved = False
 
     # funky stuff happening here check back when ur good to fix it
-    def get_possible_moves(self, white_possible_moves, black_possible_moves):
+    def get_possible_moves(self, include_same_color = False):
         self.possible_moves = []
-
+        global squarelist
         # CHECK FOR ROOK
         def check_diagonals():
             # check north-east
@@ -108,7 +109,7 @@ class Piece:
                 if y > 7 or y < 0:
                     break
                 if squarelist[x][y]:
-                    if self.color != squarelist[x][y].color:
+                    if include_same_color == True or self.color != squarelist[x][y].color:
                         self.possible_moves.append((x, y))
                     break
                 else:
@@ -120,7 +121,7 @@ class Piece:
                 if y > 7 or y < 0:
                     break
                 if squarelist[x][y]:
-                    if self.color != squarelist[x][y].color:
+                    if include_same_color == True or self.color != squarelist[x][y].color:
                         self.possible_moves.append((x, y))
                     break
                 else:
@@ -132,7 +133,7 @@ class Piece:
                 if y > 7 or y < 0:
                     break
                 if squarelist[x][y]:
-                    if self.color != squarelist[x][y].color:
+                    if include_same_color == True or self.color != squarelist[x][y].color:
                         self.possible_moves.append((x, y))
                     break
                 else:
@@ -144,7 +145,7 @@ class Piece:
                 if y > 7 or y < 0:
                     break
                 if squarelist[x][y]:
-                    if self.color != squarelist[x][y].color:
+                    if include_same_color == True or self.color != squarelist[x][y].color:
                         self.possible_moves.append((x, y))
                     break
                 else:
@@ -155,7 +156,7 @@ class Piece:
             for xcor in range(self.square[0] - 1, -1, -1):
 
                 if squarelist[xcor][self.square[1]]:
-                    if self.color != squarelist[xcor][self.square[1]].color:
+                    if include_same_color == True or self.color != squarelist[xcor][self.square[1]].color:
                         self.possible_moves.append((xcor, self.square[1]))
                     break
                 else:
@@ -164,7 +165,7 @@ class Piece:
             for xcor in range(self.square[0] + 1, 8):
 
                 if squarelist[xcor][self.square[1]]:
-                    if self.color != squarelist[xcor][self.square[1]].color:
+                    if include_same_color == True or self.color != squarelist[xcor][self.square[1]].color:
                         self.possible_moves.append((xcor, self.square[1]))
                     break
                 else:
@@ -173,7 +174,7 @@ class Piece:
             for ycor in range(self.square[1] + 1, 8):
 
                 if squarelist[self.square[0]][ycor]:
-                    if self.color != squarelist[self.square[0]][ycor].color:
+                    if include_same_color == True or self.color != squarelist[self.square[0]][ycor].color:
                         self.possible_moves.append((self.square[0], ycor))
                     break
                 else:
@@ -182,7 +183,7 @@ class Piece:
             for ycor in range(self.square[1] - 1, -1, -1):
 
                 if squarelist[self.square[0]][ycor]:
-                    if self.color != squarelist[self.square[0]][ycor].color:
+                    if include_same_color == True or self.color != squarelist[self.square[0]][ycor].color:
                         self.possible_moves.append((self.square[0], ycor))
                     break
                 else:
@@ -190,6 +191,15 @@ class Piece:
 
         if self.type == 'rook':
             check_parallels()
+            '''
+            if self.moved == False:
+                if self.color == True:
+                    if squarelist[4][7].moved == False:
+                        self.possible_moves.append((4,7))
+                else:
+                    if squarelist[4][0].moved == False:
+                        self.possible_moves.append((4,0))
+            '''
         # CHECK FOR KNIGHT
         if self.type == 'knight':
             # calculate all possible moves
@@ -201,10 +211,11 @@ class Piece:
                 # for each possible move check if really possible, if so add to list
                 if pair[0] <= 7 and pair[0] >= 0 and pair[1] <= 7 and pair[1] >= 0:
                     if squarelist[pair[0]][pair[1]]:
-                        if self.color != squarelist[pair[0]][pair[1]].color:
+                        if include_same_color == True or self.color != squarelist[pair[0]][pair[1]].color:
                             self.possible_moves.append((pair[0], pair[1]))
                     else:
                         self.possible_moves.append((pair[0], pair[1]))
+
         # CHECK FOR BISHOP
         if self.type == 'bishop':
             check_diagonals()
@@ -225,7 +236,7 @@ class Piece:
                 if pair[0] <= 7 and pair[1] <= 7 and pair[0] >= 0 and pair[1] >= 0:
 
                     if squarelist[pair[0]][pair[1]]:
-                        if self.color != squarelist[pair[0]][pair[1]].color:
+                        if include_same_color == True or self.color != squarelist[pair[0]][pair[1]].color:
                             self.possible_moves.append((pair[0], pair[1]))
             # check forward moves (including 2 up if hasnt moved)
             moves = [(self.square[0], self.square[1] + yiteration)]
@@ -238,28 +249,56 @@ class Piece:
                 if move[0] <= 7 and move[1] <= 7 and move[0] >= 0 and move[1] >= 0:
                     if squarelist[move[0]][move[1]] == None:
                         self.possible_moves.append((move[0], move[1]))
-
+        #TODO: check kings after becasue their moves depend on previous pieces's possible moves. recomend update king positions in seperate tuple and reference it excluding kings previously
+        #TODO: add moved parameters to all pieces ( use for castling )
         # CHECK FOR KING
         if self.type == 'king':
             moves = [(self.square[0] + 1, self.square[1] + 1), (self.square[0] + 1, self.square[1] - 1),
                      (self.square[0], self.square[1] + 1), (self.square[0], self.square[1] - 1),
                      (self.square[0] - 1, self.square[1] + 1), (self.square[0] - 1, self.square[1] - 1),
                      (self.square[0] + 1, self.square[1]), (self.square[0] - 1, self.square[1])]
+            # change checklist
             if self.color == True:
-                checklist = white_possible_moves
+                #says wpm not defined by the time it hits here
+                checklist = wpm_include_self_color
             else:
-                checklist = black_possible_moves
+                checklist = bpm_include_self_color
+
+            #sort poss moves
             for pair in moves:
                 # for each possible move check if really possible, if so add to list
                 if pair[0] <= 7 and pair[0] >= 0 and pair[1] <= 7 and pair[1] >= 0 and pair not in checklist:
                     if squarelist[pair[0]][pair[1]]:
-                        if self.color != squarelist[pair[0]][pair[1]].color:
+                        if include_same_color == True or self.color != squarelist[pair[0]][pair[1]].color:
                             self.possible_moves.append((pair[0], pair[1]))
                     else:
                         self.possible_moves.append((pair[0], pair[1]))
 
+            #add castling moves
+            '''
+            if self.moved == False:
+                if self.color == True:
+                    if squarelist[0][7].moved == False:
+                        self.possible_moves.append((0, 7))
+                    if squarelist[7][7].moved == False:
+                        self.possible_moves.append((7,7))
+                else:
+                    if squarelist[0][0].moved == False:
+                        self.possible_moves.append((0, 0))
+                    if squarelist[7][0].moved == False:
+                        self.possible_moves.append((7,0))
+            '''
+        #change possible moves so you can't check yourself by moving something from in front of the king
+        #TODO: replace this with a part that will add paramater to each piece attacked by a bishop rook or queen then add a way to catch kings moving backwards
+
+
+
+
+
+
 
 def move_piece(init, final):
+    global squarelist
     init_x, init_y, final_x, final_y = init[0], init[1], final[0], final[1]
     '''
     if squarelist[final_x][final_y]:
@@ -268,39 +307,129 @@ def move_piece(init, final):
     else:
         #play_animation switching Piece object and None
     '''
+    squarelist[init_x][init_y].moved = True
     squarelist[final_x][final_y] = squarelist[init_x][init_y]
     squarelist[init_x][init_y] = None
     squarelist[final_x][final_y].square = final
 
+def generate_white_possible_moves(list):
+    global white_possible_moves
+    global wpm_include_self_color
+    global king_position
+    white_possible_moves = []
+    wpm_include_self_color = []
+    king_position = [(),()]
+    for column in list:
+        for item in column:
+            if item:
+                if item.color == False:
+                    if item.type != 'king':
+                        item.get_possible_moves()
+                        poss_mv= item.possible_moves
+                        item.get_possible_moves()
+                        poss_mv_inc_self_color = item.possible_moves
+                        for move in poss_mv:
+                            if move not in white_possible_moves:
+                                white_possible_moves.append(move)
+                        for move in poss_mv_inc_self_color:
+                            if move not in wpm_include_self_color:
+                                wpm_include_self_color.append(move)
+                    elif item.type == 'king':
+                        king_position[0] = item.square
+                elif item.color == True and item.type == 'king':
+                    king_position[1] = item.square
+
+def add_white_king_moves(list):
+    #update king poss moves for white
+    global white_possible_moves
+    global wpm_include_self_color
+    item = list[king_position[0][0]][king_position[0][1]]
+    item.get_possible_moves()
+    poss_mv = item.possible_moves
+    item.get_possible_moves()
+    poss_mv_inc_self_color = item.possible_moves
+    for move in poss_mv:
+        if move not in white_possible_moves:
+            white_possible_moves.append(move)
+    for move in poss_mv_inc_self_color:
+        if move not in wpm_include_self_color:
+            wpm_include_self_color.append(move)
+
+
+
+def generate_black_possible_moves(list):
+    global black_possible_moves
+    global bpm_include_self_color
+    global king_position
+    black_possible_moves = []
+    bpm_include_self_color = []
+    king_position = [(), ()]
+    for column in list:
+        for item in column:
+            if item:
+                if item.color == True:
+                    if item.type != 'king':
+                        item.get_possible_moves()
+                        poss_mv = item.possible_moves
+                        item.get_possible_moves()
+                        poss_mv_inc_self_color = item.possible_moves
+                        for move in poss_mv:
+                            if move not in black_possible_moves:
+                                black_possible_moves.append(move)
+                        for move in poss_mv_inc_self_color:
+                            if move not in bpm_include_self_color:
+                                bpm_include_self_color.append(move)
+                    elif item.type == 'king':
+                        king_position[1] = item.square
+                elif item.color == False and item.type == 'king':
+                    king_position[0] = item.square
+
+def add_black_king_moves(list):
+    global black_possible_moves
+    global bpm_include_self_color
+    # update king poss moves for black
+    item = list[king_position[1][0]][king_position[1][1]]
+    item.get_possible_moves()
+    poss_mv = item.possible_moves
+    item.get_possible_moves()
+    poss_mv_inc_self_color = item.possible_moves
+    for move in poss_mv:
+        if move not in black_possible_moves:
+            black_possible_moves.append(move)
+    for move in poss_mv_inc_self_color:
+        if move not in bpm_include_self_color:
+            bpm_include_self_color.append(move)
+
 
 def take_turn(currcolor):
+    global gameover
+    global squarelist
+    generate_white_possible_moves(squarelist)
+    generate_black_possible_moves(squarelist)
+    add_black_king_moves(squarelist)
+    add_white_king_moves(squarelist)
     player_piece_coord = []
-    black_possible_moves = []
-    white_possible_moves = []
     for column in squarelist:
         for item in column:
             if item:
                 if item.color == currcolor:
                     player_piece_coord.append(item.square)
-                item.get_possible_moves(white_possible_moves, black_possible_moves)
                 if item.type == 'king':
+                    #TODO: add other ways king can lose?
                     # if king has no possible moves and is in check
                     if item.possible_moves == [] and (item.square in black_possible_moves or item.square in white_possible_moves):
                         gameover = True
+                        #for now
                         if item.color == True:
                             print('White Wins!!!')
                         else:
                             print('Black Wins!!!')
-                        time.sleep(5)
-                        raise SystemExit
-                if item.color == True:
-                    for move in item.possible_moves:
-                        if move not in black_possible_moves:
-                            black_possible_moves.append(move)
-                else:
-                    for move in item.possible_moves:
-                        if move not in white_possible_moves:
-                            white_possible_moves.append(move)
+
+
+    if white_possible_moves == [] or black_possible_moves == []:
+        # for now
+        print("Draw")
+        gameover == True
     # generate list of rectangles ( could change to list of tuples that have coordinates too: eg
     rect_list = generate_rectlist(player_piece_coord)
     # wait for input then shade and select it
@@ -308,7 +437,7 @@ def take_turn(currcolor):
     selectedsquare = None
     shadelist = []
     possible_moves = []
-    while turnover == False:
+    while turnover == False and gameover == False:
         oldsquarelist = squarelist
         oldshadelist = shadelist
         for event in pygame.event.get():
@@ -336,15 +465,46 @@ def take_turn(currcolor):
                 elif turnover == False:
                     for rect_tuple in rect_list_possible_moves:
                         if rect_tuple[0].collidepoint(pos):
-                            move_piece(selectedsquare, (rect_tuple[1][0], rect_tuple[1][1]))
+                            #castling
+                            initial = selectedsquare
+                            final = (rect_tuple[1][0], rect_tuple[1][1])
+                            # castle 0,0 to 4,0
+                            #TODO check validity of castling out of check and such
+                            '''
+                            if check_not_moved((0,0)) and check_not_moved((4,0)) and ((initial == (0,0) and final == (4,0) or (initial == (4,0) and final == (0,0)):
+                                move_piece(initial, final)
+
+                            else:
+                            '''
+                            move_piece(initial, final)
                             turnover = True
                     # if click wasn't on possible move, deselect square or if turn done, deselect square
                     selectedsquare = None
                     shadelist = []
         if shadelist != oldshadelist or squarelist != oldsquarelist:
             reset_board(squarelist,shadelist)
+    if gameover == True:
+        return 2
+    else:
+        return 1
 
+# return True if not moved, False if moved or null value for space
+def check_not_moved((x,y)):
+    if squarelist[x][y]:
+        if squarelist[x][y].moved == False:
+            return True
+    return False
 
+def play_game():
+    global currcolor
+    currcolor = False
+    while True:
+        if take_turn(currcolor) == 2:
+            break
+        currcolor = not currcolor
+
+def gamemenu():
+    return 1
 
 # set up pygame window
 pygame.init()
@@ -389,15 +549,14 @@ w_bishop = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\w_bishop.png")
 w_rook = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\w_rook.png")
 w_pawn = pygame.image.load("C:\\Users\\Jeremy\\Pictures\\chess\\w_pawn.png")
 
-
-# generate squarelist
-squarelist = generate_squarelist()
-reset_board(squarelist)
-
-currcolor = False
-while True:
-    take_turn(currcolor)
-    currcolor = not currcolor
+# end game menu
+exit_game = False
+while exit_game != True:
+    squarelist = generate_squarelist()
+    reset_board(squarelist)
+    gameover = False
+    play_game()
+    gamemenu()
 
 # comment out for use in testing drawing function and correct board-piece placement
 '''
